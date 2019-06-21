@@ -1,23 +1,24 @@
 <template>
   <div class="login-wrap">
-      <div class="form-wrap">
-          <div class="form-head">
-              <img src="./logo_index.png" alt="黑马头条号">
-          </div>
+    <!-- 给组件加 class，会把这个 class 作用到组件的根元素上 -->
+    <div class="form-wrap">
+      <div class="form-head">
+        <img src="./logo_index.png" alt="黑马头条号">
       </div>
-    <el-form class="form-content" ref="form" :model="form">
-      <el-form-item>
-        <el-input v-model="form.mobile">手机号</el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-col :offset="1" :span="9">
-         <el-button>获取验证码</el-button>
-        </el-col>
-      </el-form-item>
-      <el-form-item>
-        <el-button class="btn-login" type="primary" @click="onSumbit">登录</el-button>
-      </el-form-item>
-    </el-form>
+      <el-form class="form-content" ref="form" :model="form">
+        <el-form-item>
+          <el-input v-model="form.mobile" placeholder="手机号"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-col :offset="1" :span="9">
+            <el-button>获取验证码</el-button>
+          </el-col>
+        </el-form-item>
+        <el-form-item>
+          <el-button class="btn-login" type="primary" @click="onSubmit">登录</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
   </div>
 </template>
 
@@ -26,15 +27,15 @@ export default {
   name: 'AppLogin',
   data () {
     return {
-      from: {
+      form: {
         mobile: '',
         code: ''
       }
     }
   },
   methods: {
-    onSumbit () {
-      console.log('sumbit')
+    onSubmit () {
+      console.log('sumbit!')
     }
   }
 }
@@ -55,7 +56,8 @@ export default {
         img{
             width: 200px;
         }
-        .form-wrap{
+    }
+     .form-wrap{
             width: 400px;
             background-color:#fff;
             padding:20px;
@@ -64,6 +66,5 @@ export default {
                 width:100%;
             }
         }
-    }
 }
 </style>
