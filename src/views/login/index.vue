@@ -90,6 +90,14 @@ export default {
       })
     },
     handleSendCode () {
+      this.$refs['form'].validateField('mobile', errorMessage => {
+        if (errorMessage.trim().length > 0) {
+          return
+        }
+        this.showGeetst()
+      })
+    },
+    showGeetst () {
       const { mobile } = this.form
       if (this.captchaObj) {
         return this.captchaObj.verify()
