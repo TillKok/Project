@@ -18,7 +18,7 @@
             <el-input v-model="form.code" placeholder="验证码"></el-input>
           </el-col>
           <el-col :offset="1" :span="9">
-            <el-button @click="codeCountDown" :disabled="!!codeTimer">{{ codeTimer ? `剩余${codeTimeSeconds}` : '获取验证码'}}</el-button>
+            <el-button @click="handleSendCode" :disabled="!!codeTimer">{{ codeTimer ? `剩余${codeTimeSeconds}` : '获取验证码'}}</el-button>
           </el-col>
         </el-form-item>
         <el-form-item prop="agree">
