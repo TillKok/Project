@@ -61,8 +61,7 @@ export default {
         ]
       },
       codeTimer: null,
-      codeTimeSeconds: initCodeTimeSeconds,
-      captchaObj: null
+      codeTimeSeconds: initCodeTimeSeconds
     }
   },
   methods: {
