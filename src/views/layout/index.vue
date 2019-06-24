@@ -5,6 +5,7 @@
     </div> -->
     <el-container>
         <el-aside width="200px">
+            <AppAside></AppAside>
         </el-aside>
         <el-container>
             <el-header>
@@ -22,7 +23,7 @@ import AppAside from './components/AppAside'
 import AppHeader from './components/AppHeader'
 export default {
   name: 'AppLayout',
-  component: {
+  components: {
     AppAside,
     AppHeader
   },
