@@ -5,28 +5,25 @@
       <div class="form-head">
         <img src="./logo_index.png" alt="黑马头条号">
       </div>
-      <el-form class="form-content" ref="form" :model="form" :rules="rules">
-        <el-form-item prop="mobile">
+        <el-form
+          class="form-content"
+          ref="form"
+          :model="form"
+          :rules="rules">
+          <el-form-item prop="mobile">
           <el-input v-model="form.mobile" placeholder="手机号"></el-input>
-        </el-form-item>
+          </el-form-item>
         <el-form-item prop="code">
           <el-col :span="14">
             <el-input v-model="form.code" placeholder="验证码"></el-input>
           </el-col>
           <el-col :offset="1" :span="9">
-            <el-button
-              @click="handleSendCode"
-              :disabled="!!codeTimer"
-            >{{ codeTimer ? `剩余${codeTimeSeconds}` : '获取验证码'}}</el-button>
+            <el-button @click="handleSendCode" :disabled="!!codeTimer">{{ codeTimer ? `剩余${codeTimeSeconds}` : '获取验证码'}}</el-button>
           </el-col>
         </el-form-item>
         <el-form-item prop="agree">
           <el-checkbox class="agree-checkbox" v-model="form.agree"></el-checkbox>
-          <span class="agree-text">
-            我已阅读并同意
-            <a href="#">用户协议</a>和
-            <a href="#">隐私条款</a>
-          </span>
+          <span class="agree-text">我已阅读并同意<a href="#">用户协议</a>和<a href="#">隐私条款</a></span>
         </el-form-item>
         <el-form-item>
           <el-button class="btn-login" type="primary" @click="handleLogin">登录</el-button>
@@ -37,9 +34,9 @@
 </template>
 
 <script>
+import axios from 'axios'
 import '@/vendor/gt'
 import { saveUser } from '@/utils/auth'
-import initGeetest from '@/utils/init-geetest'
 const initCodeTimeSeconds = 60
 export default {
   name: 'AppLogin',
@@ -77,14 +74,14 @@ export default {
         this.submitLogin()
       })
     },
-    async submitLogin () {
-      try {
-        const res = await this.$http({
-          method: 'POST',
-          url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
-          data: this.form
-        })
+    submitLogin () {
+      axios({
+        method: 'POST',
+        url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
+        data: this.form
+      }).then(res => {
         const userInfo = res.data.data
+        // window.localStorage.setItem('user_info', JSON.stringify(userInfo))
         saveUser(userInfo)
         this.$message({
           message: '登录成功',
@@ -93,9 +90,9 @@ export default {
         this.$router.push({
           name: 'home'
         })
-      } catch (err) {
+      }).catch((e) => {
         this.$message.error('登录失败，手机号或验证码错误')
-      }
+      })
     },
     handleSendCode () {
       this.$refs['form'].validateField('mobile', errorMessage => {
@@ -105,44 +102,49 @@ export default {
         this.showGeetst()
       })
     },
-    async showGeetst () {
+    showGeetst () {
       const { mobile } = this.form
       if (this.captchaObj) {
         return this.captchaObj.verify()
       }
-      const res = await this.$http({
+      axios({
         method: 'GET',
-        url: `captchas/${mobile} `
-      })
-      const { data } = res.data
-      const captchaObj = await initGeetest({
-        gt: data.gt,
-        challenge: data.challenge,
-        offline: !data.success,
-        new_captcha: true,
-        product: 'bind'
-      })
-      captchaObj.onReady(() => {
-        captchaObj.verify()
-      }).onSuccess(async () => {
-        const {
-          geetest_challenge: challenge,
-          geetest_seccode: seccode,
-          geetest_validate: validate
-        } = captchaObj.getValidate()
-        await this.$http({
-          method: 'GET',
-          url: `/sms/codes/${mobile}`,
-          params: {
-            challenge,
-            validate,
-            seccode
-          }
+        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile} `
+      }).then(res => {
+        const data = res.data.data
+        window.initGeetest({
+          gt: data.gt,
+          challenge: data.challenge,
+          offline: !data.success,
+          new_captcha: true,
+          product: 'bind'
+        }, captchaObj => {
+          captchaObj.onReady(function () {
+            captchaObj.verify()
+          }).onSuccess(() => {
+            const {
+              geetest_challenge: challenge,
+              geetest_seccode: seccode,
+              geetest_validate: validate
+            } = captchaObj.getValidate()
+
+            axios({
+              method: 'GET',
+              url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${mobile}`,
+              params: {
+                challenge,
+                validate,
+                seccode
+              }
+            }).then(res => {
+              this.codeCountDown()
+            })
+          }).onError(function () {
+
+          })
         })
-        this.codeCountDown()
       })
     },
-
     codeCountDown () {
       this.codeTimer = window.setInterval(() => {
         this.codeTimeSeconds--
@@ -179,12 +181,12 @@ export default {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
-    .agree-checkbox {
-      margin-right: 10px;
+    .agree-checkbox{
+      margin-right:10px;
     }
-    .agree-text {
-      font-size: 16px;
-      color: #999;
+    .agree-text{
+      font-size:16px;
+      color:#999;
     }
     .btn-login {
       width: 100%;
