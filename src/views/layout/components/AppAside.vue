@@ -22,7 +22,7 @@
         <i class="iconfont" icon-edit></i>
         <span slot="title">发布</span>
       </el-menu-item>
-      <el-menu-item index="1-3">
+      <el-menu-item index="/article">
         <i class="iconfont icon-icon-articles"></i>
         <span slot="title">内容列表</span>
       </el-menu-item>
@@ -50,7 +50,8 @@
 export default {
   name: 'AppAside',
   data () {
-    return {}
+    return {
+    }
   },
   methods: {
     handleOpen (key, keyPath) {

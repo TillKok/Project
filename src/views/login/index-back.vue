@@ -77,7 +77,7 @@ export default {
     submitLogin () {
       axios({
         method: 'POST',
-        url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
+        url: '/authorizations',
         data: this.form
       }).then(res => {
         const userInfo = res.data.data
@@ -109,7 +109,7 @@ export default {
       }
       axios({
         method: 'GET',
-        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile} `
+        url: `/authorizations/${mobile} `
       }).then(res => {
         const data = res.data.data
         window.initGeetest({
@@ -130,7 +130,7 @@ export default {
 
             axios({
               method: 'GET',
-              url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${mobile}`,
+              url: `/${mobile}`,
               params: {
                 challenge,
                 validate,

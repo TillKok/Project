@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import '@/vendor/gt'
+// import '@/vendor/gt'
 import { saveUser } from '@/utils/auth'
 import initGeetest from '@/utils/init-geetest'
 const initCodeTimeSeconds = 60
@@ -79,12 +79,11 @@ export default {
     },
     async submitLogin () {
       try {
-        const res = await this.$http({
+        const userInfo = await this.$http({
           method: 'POST',
-          url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
+          url: '/authorizations',
           data: this.form
         })
-        const userInfo = res.data.data
         saveUser(userInfo)
         this.$message({
           message: '登录成功',
@@ -110,11 +109,10 @@ export default {
       if (this.captchaObj) {
         return this.captchaObj.verify()
       }
-      const res = await this.$http({
+      const data = await this.$http({
         method: 'GET',
         url: `captchas/${mobile} `
       })
-      const { data } = res.data
       const captchaObj = await initGeetest({
         gt: data.gt,
         challenge: data.challenge,

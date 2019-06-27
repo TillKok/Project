@@ -20,6 +20,11 @@ const router = new Router({
           name: 'publish',
           path: '/publish',
           component: () => import('@/views/publish')
+        },
+        {
+          name: 'article',
+          path: '/article',
+          component: () => import('@/views/article')
         }
       ]
     },
@@ -36,12 +41,17 @@ router.beforeEach((to, from, next) => {
   const userInfo = getUser()
   if (to.path !== '/login') {
     if (!userInfo) {
+      if (from.path === '/login') {
+        nprogress.done()
+      }
       next({ name: 'login' })
     } else {
+      console.log(3)
       next()
     }
   } else {
     if (!userInfo) {
+      console.log(2)
       next()
     } else {
       next({ name: 'home' })
