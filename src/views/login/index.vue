@@ -17,6 +17,7 @@
             <el-button
               @click="handleSendCode"
               :disabled="!!codeTimer"
+              :loading="codeLoading"
             >{{ codeTimer ? `剩余${codeTimeSeconds}` : '获取验证码'}}</el-button>
           </el-col>
         </el-form-item>
@@ -29,7 +30,12 @@
           </span>
         </el-form-item>
         <el-form-item>
-          <el-button class="btn-login" type="primary" @click="handleLogin">登录</el-button>
+          <el-button
+            class="btn-login"
+            type="primary"
+            @click="handleLogin"
+            :loading="loginLoading"
+          >登录</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -65,7 +71,9 @@ export default {
         ]
       },
       codeTimer: null,
-      codeTimeSeconds: initCodeTimeSeconds
+      codeTimeSeconds: initCodeTimeSeconds,
+      loginLoading: false,
+      codeLoading: false
     }
   },
   methods: {
@@ -78,6 +86,7 @@ export default {
       })
     },
     async submitLogin () {
+      this.loginLoading = true
       try {
         const userInfo = await this.$http({
           method: 'POST',
@@ -95,6 +104,7 @@ export default {
       } catch (err) {
         this.$message.error('登录失败，手机号或验证码错误')
       }
+      this.loginLoading = false
     },
     handleSendCode () {
       this.$refs['form'].validateField('mobile', errorMessage => {
@@ -105,40 +115,48 @@ export default {
       })
     },
     async showGeetst () {
-      const { mobile } = this.form
-      if (this.captchaObj) {
-        return this.captchaObj.verify()
-      }
-      const data = await this.$http({
-        method: 'GET',
-        url: `captchas/${mobile} `
-      })
-      const captchaObj = await initGeetest({
-        gt: data.gt,
-        challenge: data.challenge,
-        offline: !data.success,
-        new_captcha: true,
-        product: 'bind'
-      })
-      captchaObj.onReady(() => {
-        captchaObj.verify()
-      }).onSuccess(async () => {
-        const {
-          geetest_challenge: challenge,
-          geetest_seccode: seccode,
-          geetest_validate: validate
-        } = captchaObj.getValidate()
-        await this.$http({
+      try {
+        this.codeLoading = true
+        const { mobile } = this.form
+        const data = await this.$http({
           method: 'GET',
-          url: `/sms/codes/${mobile}`,
-          params: {
-            challenge,
-            validate,
-            seccode
+          url: `captchas/${mobile} `
+        })
+        const captchaObj = await initGeetest({
+          gt: data.gt,
+          challenge: data.challenge,
+          offline: !data.success,
+          new_captcha: true,
+          product: 'bind'
+        })
+        captchaObj.onReady(() => {
+          captchaObj.verify()
+        }).onSuccess(async () => {
+          try {
+            const {
+              geetest_challenge: challenge,
+              geetest_seccode: seccode,
+              geetest_validate: validate
+            } = captchaObj.getValidate()
+            await this.$http({
+              method: 'GET',
+              url: `/sms/codes/${mobile}`,
+              params: {
+                challenge,
+                validate,
+                seccode
+              }
+            })
+            this.codeCountDown()
+          } catch (err) {
+            this.$message.error('获取验证码失败')
+            this.codeLoading = false
           }
         })
-        this.codeCountDown()
-      })
+      } catch (err) {
+        this.$message.error('获取验证码失败')
+        this.codeLoading = false
+      }
     },
 
     codeCountDown () {
