@@ -28,7 +28,7 @@
         </el-form-item>
         <el-form-item label="时间">
           <el-date-picker
-            v-format="yyyy-MM-dd"
+            value-format="yyyy-MM-dd"
             v-model="range_date"
             @change="handleDateChange"
             type="daterange"
@@ -38,13 +38,16 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">查询</el-button>
+          <el-button
+            type="primary"
+            @click="handleFilter"
+            :loading="articleLoading">查询</el-button>
         </el-form-item>
       </el-form>
     </el-card>
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>一共有xxx条数据</span>
+        <span>一共有<strong>{{ totalCount }}</strong>条数据</span>
         <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
       </div>
       <el-table
@@ -95,6 +98,7 @@
 
       <el-pagination
         background
+        :current-page="page"
         layout="prev, pager, next"
         :page-size="pageSize"
         :total="totalCount"
@@ -168,15 +172,26 @@ export default {
         this.$message.error('获取频道失败')
       }
     },
-    onSubmit () {},
+    handleFilter () {
+      this.page = 1
+      this.loadArticles()
+    },
     async loadArticles () {
       this.articleLoading = true
+      const filterData = {}
+      for (let key in this.filterParams) {
+        const item = this.filterParams[key]
+        if (item !== null && item !== '') {
+          filterData[key] = item
+        }
+      }
       const data = await this.$http({
         method: 'GET',
         url: '/articles',
         params: {
           page: this.page,
-          per_page: this.pageSize
+          per_page: this.pageSize,
+          ...filterData
         }
       })
       this.articles = data.results
