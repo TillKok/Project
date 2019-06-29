@@ -28,7 +28,9 @@
         </el-form-item>
         <el-form-item label="时间">
           <el-date-picker
-            v-model="filterParams.begin_pubdate"
+            v-format="yyyy-MM-dd"
+            v-model="range_date"
+            @change="handleDateChange"
             type="daterange"
             range-separator="至"
             start-placeholder="开始日期"
@@ -141,6 +143,7 @@ export default {
         begin_pubdate: '',
         end_pubdate: ''
       },
+      range_date: '',
       channels: []
     }
   },
@@ -149,6 +152,10 @@ export default {
   },
 
   methods: {
+    handleDateChange (value) {
+      this.filterParams.begin_pubdate = value[0]
+      this.filterParams.end_pubdate = value[1]
+    },
     async loadChannels () {
       try {
         const data = await this.$http({
