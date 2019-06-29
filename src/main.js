@@ -7,10 +7,18 @@ import 'nprogress/nprogress.css'
 import './styles/index.less'
 import axios from 'axios'
 import { getUser, removeUser } from '@/utils/auth'
+import JSONbig from 'json-bigint'
 
 // axios.defaults.baseURL = 'http://toutiao.course.itcast.cn/mp/v1_0/'
 axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
 
+axios.defaults.transformResponse = [function (data) {
+  try {
+    return JSONbig.parse(data)
+  } catch (err) {
+    return data
+  }
+}]
 axios.interceptors.request.use(config => {
   const user = getUser()
   if (user) {
