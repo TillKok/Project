@@ -1,15 +1,14 @@
 <template>
   <div>
-
     <el-card class="filter-card">
       <div slot="header" class="clearfix">
         <span>数据筛选</span>
         <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
       </div>
-       <el-form ref="form" :model="filterParams" label-width="80px">
+      <el-form ref="form" :model="filterParams" label-width="80px">
         <el-form-item label="状态">
           <el-radio-group v-model="filterParams.status">
-            <el-radio label="">全部</el-radio>
+            <el-radio label>全部</el-radio>
             <el-radio
               v-for="(item, index) in statTypes"
               :key="item.label"
@@ -18,12 +17,8 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="频道">
-          <el-select  v-model="filterParams.channel_id" clearable>
-            <el-option
-                v-for="item in channels"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"></el-option>
+          <el-select v-model="filterParams.channel_id" clearable>
+            <el-option v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="时间">
@@ -34,20 +29,20 @@
             type="daterange"
             range-separator="至"
             start-placeholder="开始日期"
-            end-placeholder="结束日期">
-          </el-date-picker>
+            end-placeholder="结束日期"
+          ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button
-            type="primary"
-            @click="handleFilter"
-            :loading="articleLoading">查询</el-button>
+          <el-button type="primary" @click="handleFilter" :loading="articleLoading">查询</el-button>
         </el-form-item>
       </el-form>
     </el-card>
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>一共有<strong>{{ totalCount }}</strong>条数据</span>
+        <span>
+          一共有
+          <strong>{{ totalCount }}</strong>条数据
+        </span>
         <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
       </div>
       <el-table
@@ -55,40 +50,20 @@
         :data="articles"
         style="width: 100%"
         v-loading="articleLoading"
-        >
-        <el-table-column
-          label="封面"
-          width="180">
+      >
+        <el-table-column label="封面" width="180">
           <template slot-scope="scope">
-            <img
-              width="20"
-              v-for="item in scope.row.cover.images"
-              :key="item"
-              :src="item"
-            >
+            <img width="20" v-for="item in scope.row.cover.images" :key="item" :src="item" />
           </template>
         </el-table-column>
-        <el-table-column
-          prop="title"
-          label="标题"
-          width="180">
-        </el-table-column>
-        <el-table-column
-          label="状态"
-          width="180">
+        <el-table-column prop="title" label="标题" width="180"></el-table-column>
+        <el-table-column label="状态" width="180">
           <template slot-scope="scope">
-            <el-tag :type="statTypes[scope.row.status].type">
-              {{ statTypes[scope.row.status].label }}
-            </el-tag>
+            <el-tag :type="statTypes[scope.row.status].type">{{ statTypes[scope.row.status].label }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="pubdate"
-          label="发布时间"
-          width="180">
-        </el-table-column>
-        <el-table-column
-          label="操作">
+        <el-table-column prop="pubdate" label="发布时间" width="180"></el-table-column>
+        <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" plain>修改</el-button>
             <el-button size="mini" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
@@ -103,8 +78,8 @@
         :page-size="pageSize"
         :total="totalCount"
         :disabled="articleLoading"
-        @current-change="handleCurrentChange">
-      </el-pagination>
+        @current-change="handleCurrentChange"
+      ></el-pagination>
     </el-card>
   </div>
 </template>
@@ -156,8 +131,31 @@ export default {
   },
 
   methods: {
-    handleDlete (item) {
-      console.log(item.id.toString())
+    async handleDlete (item) {
+      try {
+        await this.$confirm('此操作将永久删除该文件，是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await this.$http({
+          method: 'DELETE',
+          url: `/articles/${item.id}`
+        })
+        this.$message({
+          type: 'success',
+          message: '删除成功'
+        })
+        this.loadArticles()
+      } catch (err) {
+        if (err === 'cancel') {
+          return this.$message({
+            type: 'info',
+            message: '已取消删除 '
+          })
+        }
+        this.$message.error('删除失败')
+      }
     },
     handleDateChange (value) {
       this.filterParams.begin_pubdate = value[0]
@@ -180,26 +178,30 @@ export default {
       this.loadArticles()
     },
     async loadArticles () {
-      this.articleLoading = true
-      const filterData = {}
-      for (let key in this.filterParams) {
-        const item = this.filterParams[key]
-        if (item !== null && item !== '') {
-          filterData[key] = item
+      try {
+        this.articleLoading = true
+        const filterData = {}
+        for (let key in this.filterParams) {
+          const item = this.filterParams[key]
+          if (item !== null && item !== '') {
+            filterData[key] = item
+          }
         }
+        const data = await this.$http({
+          method: 'GET',
+          url: '/articles',
+          params: {
+            page: this.page,
+            per_page: this.pageSize,
+            ...filterData
+          }
+        })
+        this.articles = data.results
+        this.totalCount = data.total_count
+        this.articleLoading = false
+      } catch (err) {
+        this.$message.error('加载文章列表失败', err)
       }
-      const data = await this.$http({
-        method: 'GET',
-        url: '/articles',
-        params: {
-          page: this.page,
-          per_page: this.pageSize,
-          ...filterData
-        }
-      })
-      this.articles = data.results
-      this.totalCount = data.total_count
-      this.articleLoading = false
     },
     handleCurrentChange (page) {
       this.page = page
