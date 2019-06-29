@@ -137,7 +137,7 @@ export default {
         type: [],
         resource: '',
         desc: '',
-        value: ''
+        value1: ''
       }
     }
   },
