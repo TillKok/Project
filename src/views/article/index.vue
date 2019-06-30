@@ -17,9 +17,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="频道">
-          <el-select v-model="filterParams.channel_id" clearable>
-            <el-option v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
-          </el-select>
+         <article-channel v-model="filterParams.channel_id"></article-channel>
         </el-form-item>
         <el-form-item label="时间">
           <el-date-picker
@@ -85,8 +83,12 @@
 </template>
 
 <script>
+import ArticleChannel from '@/components/article-channel'
 export default {
   name: 'ArticleList',
+  components: {
+    ArticleChannel
+  },
   data () {
     return {
       articles: [],
@@ -122,12 +124,11 @@ export default {
         begin_pubdate: '',
         end_pubdate: ''
       },
-      range_date: '',
-      channels: []
+      range_date: ''
     }
   },
   created () {
-    this.loadChannels()
+    this.loadArticles()
   },
 
   methods: {
@@ -160,18 +161,6 @@ export default {
     handleDateChange (value) {
       this.filterParams.begin_pubdate = value[0]
       this.filterParams.end_pubdate = value[1]
-    },
-    async loadChannels () {
-      try {
-        const data = await this.$http({
-          method: 'GET',
-          url: '/channels'
-        })
-        this.channels = data.channels
-      } catch (err) {
-        console.log(err)
-        this.$message.error('获取频道失败')
-      }
     },
     handleFilter () {
       this.page = 1
